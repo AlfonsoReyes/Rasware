@@ -19,8 +19,7 @@ void main(void){
 //    CallEvery(blink, 0.25f);
 
     initMotors();
-    motorTest();    
-
+    motorTest();
 
 
 
