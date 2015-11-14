@@ -1,0 +1,13 @@
+void initMotors(void);
+void motorTest(void);
+void duoIRSensors(void);
+void LineSensorTest(void);
+void fullRun(void);
+void gateOpenUp(void);
+void gateOpenDown(void);
+void gateClose(void);
+void LineSensorTestGate(void);
+void turn90(void);
+void forward(void);
+void stop(void);
+void turnWindmill(void);
