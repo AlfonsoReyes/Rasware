@@ -19,8 +19,16 @@ void main(void){
 //    CallEvery(blink, 0.25f);
 
     initMotors();
-    motorTest();
 
+    turnWindmill();
 
-
+    forward();
+    WaitUS(8000000);
+    turn90();
+    WaitUS(500000);
+    turn90();
+    WaitUS(500000);
+    forward();
+    WaitUS(8000000);
+    stop();
 }
