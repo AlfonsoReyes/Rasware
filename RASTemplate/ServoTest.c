@@ -1,4 +1,5 @@
 
+
 #include <RASLib/inc/uart.h>
 #include <RASLib/inc/common.h>
 #include <RASLib/inc/gpio.h>
@@ -11,6 +12,7 @@
 static tADC *adc[4];
 static tMotor *motor1;
 static tMotor *motor2;
+static tMotor *motor3;
 static tBoolean initialized = false;
 static tBoolean blink_on = true;
 static tLineSensor *gls;
@@ -24,6 +26,7 @@ if (!(initialized)){
     servo1 = InitializeServo(PIN_E4);
     motor1 = InitializeServoMotor(PIN_B0,false);
     motor2 = InitializeServoMotor(PIN_B1,false);
+    motor3 = InitializeServoMotor(PIN_E5,false);
     adc[0] = InitializeADC(PIN_D0);     //FORWARD
     adc[1] = InitializeADC(PIN_D1);     //LATERAL
     adc[2] = InitializeADC(PIN_D2);
@@ -42,7 +45,60 @@ if (!(initialized)){
 }
 }
 
-//abrupt or gradual turning?
+//set robot to move forward at MAXIMUM OVERDRIVE
+void turnWindmill(void){
+    while(1){
+    
+    SetMotor(motor3, 1.0);
+
+    }
+
+}
+
+
+void forward(void){
+
+    SetMotor(motor1, -0.85);
+    SetMotor(motor2, 1.0);
+
+}
+
+void stop(void){
+    SetMotor(motor1, 0);
+    SetMotor(motor2, 0);
+}
+
+//turn robot 90 degrees
+void turn90(void){
+    SetMotor(motor1, 1.0);
+    SetMotor(motor2, 1.0);
+    WaitUS(1600000);
+    SetMotor(motor1, 0);
+    SetMotor(motor2, 0);
+
+}
+
+
+//servo conditions, @ 0.50, in middle, @ 1.0, top, @ 0.0 , bottom
+//moves servo gate up -> MARBLES EXIT, PING PONG BALLS BLOCKED
+void gateOpenUp(void){
+SetServo(servo1, 0.75);
+WaitUS(2000000);
+}
+//moves servo gate down -> MARBLES BLOCKED, PING PONG BALLS EXIT
+void gateOpenDown(void){
+SetServo(servo1, 0.25);
+WaitUS(2000000);
+}
+//servo gate closes -> MARBLES & PING PONG BALLS BLOCKED
+void gateClose(void){
+
+SetServo(servo1, 0.50);
+}
+
+
+//motor 1 is right motor, negative is forward
+//motor 2 is left motor, positive is forward
 void motorTest(void){       //only uses one IR sensor for wall sensing & turning
 
     float speedOne;
@@ -53,18 +109,19 @@ void motorTest(void){       //only uses one IR sensor for wall sensing & turning
 
 
     if(ADCRead(adc[0]) < 0.50){         //forward
-        speedOne =0.20;
-        speedTwo = -0.20;
-        SetServo(servo1, 0);
+        speedOne =-0.20;
+        speedTwo = 0.20;
+
     }
     else if(ADCRead(adc[0]) > 0.50){    //turn right
-        speedOne += (ADCRead(adc[0]) - 0.20);
+        speedOne -= 0.01;
        //speedTwo +=0.01;
-        SetServo(servo1, 1);
+
     }
 
         SetMotor(motor1,speedOne);
         SetMotor(motor2,speedTwo);
+        SetMotor(motor3, 0.25);
     }
 
     
@@ -140,7 +197,7 @@ void LineSensorTest(void){
 
     //1 is carpet, 0 is black
     while(1){
-    LineSensorReadArray(gls,line);
+//    LineSensorReadArray(gls,line);
     if(line[1] < threshold){
     vals[0] = 1;
     }
@@ -214,8 +271,8 @@ void LineSensorTest(void){
 
     }
 
-    SetMotor(motor1, spdOne);
-    SetMotor(motor2, spdTwo);
+//    SetMotor(motor1, spdOne);
+//    SetMotor(motor2, spdTwo);
 
 
     }
@@ -226,6 +283,80 @@ void LineSensorTest(void){
 }
 
 //code to run for competition
+
+
+//uses Line Sensor to operate servo gate allowing marbles/ping pong balls to exit
+void LineSensorTestGate(void){
+
+    int ls1;
+    int ls2;
+    float lne[8];
+    int gateState;
+    //if 1, open up, marbles leave, @home post
+    //if 0, open down, ping pong balls leave, @enemy post
+    gateState = 1;
+
+    while(1){
+
+    LineSensorReadArray(gls, lne);
+    //Determine state of each line sensor node
+    //1 -> carpet, 0 -> black tape
+    if(lne[3] < 0.30){
+        ls1 = 1;
+
+    }
+    else{
+        ls1 = 0;
+    }
+   
+    if(lne[4] < 0.30){
+        ls2 = 1;
+    }
+    else{
+        ls2 = 0;
+    }
+    
+    //all active line sensor nodes @ black tape
+    // ==> trigger gate event
+
+    if(ls1 == 0 && ls2 == 0){
+        //stop moving motors
+        SetMotor(motor1, 0);
+        SetMotor(motor2, 0);
+
+        if(gateState == 1){
+            gateOpenUp();
+        }
+        else{
+            gateOpenDown();
+        }
+        
+        gateClose();
+
+        SetMotor(motor1, -0.40);
+        SetMotor(motor2, 0.40);
+        WaitUS(1000000);
+    
+        SetMotor(motor1, 0);
+        SetMotor(motor2, 0);
+
+        if(gateState == 1){
+            gateState = 0;
+        }
+        else if(gateState != 1){
+            gateState = 1;
+        }
+
+    }
+    else{
+        
+        gateClose();
+    }
+
+    }
+}
+
+
 
 void fullRun(void){
 
