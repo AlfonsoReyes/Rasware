@@ -28,6 +28,7 @@ if (!(initialized)){
     motor2 = InitializeServoMotor(PIN_B1,false);
     motor3 = InitializeServoMotor(PIN_E5,false);
     adc[0] = InitializeADC(PIN_D0);     //FORWARD
+
     adc[1] = InitializeADC(PIN_D1);     //LATERAL
     adc[2] = InitializeADC(PIN_D2);
     adc[3] = InitializeADC(PIN_D3);
@@ -108,14 +109,14 @@ void motorTest(void){       //only uses one IR sensor for wall sensing & turning
     while(1) {
 
 
-    if(ADCRead(adc[0]) < 0.50){         //forward
-        speedOne =-0.20;
-        speedTwo = 0.20;
+    if(ADCRead(adc[0]) < 0.30){         //forward
+        speedOne = -0.30;
+        speedTwo = 0.30;
 
     }
-    else if(ADCRead(adc[0]) > 0.50){    //turn right
-        speedOne -= 0.01;
-       //speedTwo +=0.01;
+    else if(ADCRead(adc[0]) > 0.30){    //turn right
+        speedOne = -0.95;
+        speedTwo = 0.10;
 
     }
 
