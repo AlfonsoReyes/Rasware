@@ -20,15 +20,19 @@ void main(void){
 
     initMotors();
 
-    turnWindmill();
+//    turnWindmill();
 
-    forward();
-    WaitUS(8000000);
-    turn90();
-    WaitUS(500000);
-    turn90();
-    WaitUS(500000);
-    forward();
-    WaitUS(8000000);
-    stop();
+//    forward();
+//    WaitUS(8000000);
+//    turn90();
+//    WaitUS(500000);
+//    turn90();
+//    WaitUS(500000);
+//    forward();
+//    WaitUS(8000000);
+//    stop();
+
+    motorTest();;
+//    LineSensorTestGate();
 }
+
