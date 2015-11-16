@@ -11,3 +11,4 @@ void turn90(void);
 void forward(void);
 void stop(void);
 void turnWindmill(void);
+void shake(void);
