@@ -1,40 +1,40 @@
-
-
-#include <RASLib/inc/uart.h>
-#include <RASLib/inc/common.h>
-#include <RASLib/inc/gpio.h>
-#include <RASLib/inc/time.h>
-#include <RASLib/inc/motor.h>
-#include <RASLib/inc/servo.h>
-#include <RASLib/inc/adc.h>
+// ServoTest.c
+// Contains the functions that manipulate servos, motors, etc. that will be used in 
+// RoboHub.c
+// Included Files
+#include <RASLib/inc/uart.h>        // Contains functions to utilize UART
+#include <RASLib/inc/common.h>      // Common file
+#include <RASLib/inc/gpio.h>        // Contains functions to utilize ports of the controller
+#include <RASLib/inc/time.h>        // Contains functions to delay and manipulate system time
+#include <RASLib/inc/motor.h>       // Contains functions to manipulate motors
+#include <RASLib/inc/servo.h>       // Contains functions to manipulate servos
+#include <RASLib/inc/adc.h>         // Contains functions dealing with ADC
 #include <RASLib/inc/linesensor.h>
 
-static tADC *adc[4];
-static tMotor *motor1;
-static tMotor *motor2;
-static tMotor *motor3;
-static tBoolean initialized = false;
+// Variable Definitions
+static tADC *adc[4];                  // Array for using ADC 
+static tMotor *motor1;                // Variable to manipulate a motor
+static tMotor *motor2;                // Variable to manipulate a motor
+static tMotor *motor3;                // Variable to manipulate a motor
+static tBoolean initialized = false;  // Flag that indicates whether initialization occurred
 static tBoolean blink_on = true;
-static tLineSensor *gls;
-static tServo *servo1;
-// The 'main' function is the entry point of the program
+static tLineSensor *gls;              // Variable to hold line sensor values
+static tServo *servo1;                // Variable to manipulate a servo
+
+// Initializations
 void initMotors(void) {
-    // Initialization code can go here
-if (!(initialized)){
+    if (!(initialized)){              // If initialization has not occurred, continue.
+        initialized = true;           // Set the initialization flag.
+        servo1 = InitializeServo(PIN_E4);
+        motor1 = InitializeServoMotor(PIN_B0,false);
+        motor2 = InitializeServoMotor(PIN_B1,false);
+        motor3 = InitializeServoMotor(PIN_E5,false);
+        adc[0] = InitializeADC(PIN_D0);      // FORWARD
+        adc[1] = InitializeADC(PIN_D1);      // LATERAL
+        adc[2] = InitializeADC(PIN_D2);
+        adc[3] = InitializeADC(PIN_D3);
 
-    initialized = true;
-    servo1 = InitializeServo(PIN_E4);
-    motor1 = InitializeServoMotor(PIN_B0,false);
-    motor2 = InitializeServoMotor(PIN_B1,false);
-    motor3 = InitializeServoMotor(PIN_E5,false);
-    adc[0] = InitializeADC(PIN_D0);     //FORWARD
-
-
-    adc[1] = InitializeADC(PIN_D1);     //LATERAL
-    adc[2] = InitializeADC(PIN_D2);
-    adc[3] = InitializeADC(PIN_D3);
-
-    gls = InitializeGPIOLineSensor( 
+        gls = InitializeGPIOLineSensor( // Line Sensor Initialization 
         PIN_E0,     //1
         PIN_E2,     //2
         PIN_D0,     //3
@@ -43,34 +43,31 @@ if (!(initialized)){
         PIN_D3,     //6
         PIN_E3,     //7
         PIN_E1);    //8
-
-}
-}
-
-//set robot to move forward at MAXIMUM OVERDRIVE
-void turnWindmill(void){
-    while(1){
-    
-    SetMotor(motor3, 1.0);
-
     }
-
 }
 
+// Function Definitions
 
-void forward(void){
+// turnWindmill sets the robot to move forward at MAXIMUM OVERDRIVE.
+void turnWindmill(void){
+    while(1){    
+         SetMotor(motor3, 1.0); // Spin "windmill".
+     }
+}
 
+// forward moves the robot forward.
+void forward(void){             
     SetMotor(motor1, -0.85);
     SetMotor(motor2, 1.0);
-
 }
 
+// stop stops the robot.
 void stop(void){
     SetMotor(motor1, 0);
     SetMotor(motor2, 0);
 }
 
-//turn robot 90 degrees
+//turn90 turns the robot 90 degrees.
 void turn90(void){
     SetMotor(motor1, 1.0);
     SetMotor(motor2, 1.0);
@@ -78,19 +75,41 @@ void turn90(void){
     SetMotor(motor1, 0);
     SetMotor(motor2, 0);
 
+
 }
 
+void shake(void){
+
+SetMotor(motor1,-0.95);
+SetMotor(motor2, -0.95);
+WaitUS(200000);
+
+SetMotor(motor1, 0.95);
+SetMotor(motor2, 0.95);
+WaitUS(200000);
+
+
+}
 
 //servo conditions, @ 0.50, in middle, @ 1.0, top, @ 0.0 , bottom
 //moves servo gate up -> MARBLES EXIT, PING PONG BALLS BLOCKED
 void gateOpenUp(void){
 SetServo(servo1, 0.50);
-WaitUS(2000000);
+
+shake();
+shake();
+shake();
+shake();
+shake();
 }
 //moves servo gate down -> MARBLES BLOCKED, PING PONG BALLS EXIT
 void gateOpenDown(void){
 SetServo(servo1, 0.10);
-WaitUS(2000000);
+shake();
+shake();
+shake();
+shake();
+shake();
 }
 //servo gate closes -> MARBLES & PING PONG BALLS BLOCKED
 void gateClose(void){
@@ -370,24 +389,89 @@ void fullRun(void){
 
 float m1Spd;
 float m2Spd;
+float m3Spd;
+
+int lsf1;
+int lsf2;
+float line[8];
+int gateCond;
+
+gateCond = 1;
 
 while(1){
+    
+    gateClose();
 
-    if(ADCRead(adc[0]) > 0.50){     //too close
+    LineSensorReadArray(gls, line);
 
+    if(line[3] < 0.90){
+        lsf1 = 1;
+    }
+    else{
+        lsf1 = 0;
+    }
+
+    if(line[4] < 0.90){
+        lsf2 = 1;
+    }
+    else{
+        lsf2 = 0;
+    }
+
+    if(lsf1 == 0 && lsf2 == 0){
+        SetMotor(motor1, 0);
+        SetMotor(motor2, 0);
+
+        if(gateCond == 1){
+            gateOpenUp();
+        }
+        else{
+            gateOpenDown();
+        }
+
+        gateClose();
+    
+
+        SetMotor(motor1, -0.40);
+        SetMotor(motor2, 0.40);
+        WaitUS(1000000);
+
+        SetMotor(motor1, 0);
+        SetMotor(motor2, 0);
+    
+        if(gateCond == 1){
+           gateCond = 0;
+        }
+        else if(gateCond == 0){
+            gateCond = 1;
+        }
 
     }
-    else if(ADCRead(adc[0]) < 0.50){ 
+    else{
 
-    m1Spd = 0.50;
-    m2Spd = -0.50;
+        gateClose();
 
     }
 
-    SetMotor(motor1,m1Spd);
-    SetMotor(motor2,m2Spd);
 
+    if(ADCRead(adc[3]) > 0.60){
+        m1Spd = -0.95;
+        m2Spd = -0.95;
+    }
+    else if(ADCRead(adc[0]) < 0.40){
+        m1Spd = -0.30;
+        m2Spd = 0.30;
 
+    }
+    else if(ADCRead(adc[0]) > 0.40){
+        m1Spd = -0.95;
+        m2Spd = 0.10;
+
+    }
+    
+    SetMotor(motor1, m1Spd);
+    SetMotor(motor2, m2Spd);
+    SetMotor(motor3, 0.40);
 
 
 
