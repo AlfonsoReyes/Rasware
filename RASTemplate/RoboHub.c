@@ -31,8 +31,10 @@ void main(void){
 //    forward();
 //    WaitUS(8000000);
 //    stop();
-    turnWindmill();
+//    turnWindmill();
 //    motorTest();;
 //    LineSensorTestGate();
+
+      fullRun();
 }
 
