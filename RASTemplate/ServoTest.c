@@ -29,6 +29,7 @@ if (!(initialized)){
     motor3 = InitializeServoMotor(PIN_E5,false);
     adc[0] = InitializeADC(PIN_D0);     //FORWARD
 
+
     adc[1] = InitializeADC(PIN_D1);     //LATERAL
     adc[2] = InitializeADC(PIN_D2);
     adc[3] = InitializeADC(PIN_D3);
@@ -83,18 +84,18 @@ void turn90(void){
 //servo conditions, @ 0.50, in middle, @ 1.0, top, @ 0.0 , bottom
 //moves servo gate up -> MARBLES EXIT, PING PONG BALLS BLOCKED
 void gateOpenUp(void){
-SetServo(servo1, 0.75);
+SetServo(servo1, 0.50);
 WaitUS(2000000);
 }
 //moves servo gate down -> MARBLES BLOCKED, PING PONG BALLS EXIT
 void gateOpenDown(void){
-SetServo(servo1, 0.25);
+SetServo(servo1, 0.10);
 WaitUS(2000000);
 }
 //servo gate closes -> MARBLES & PING PONG BALLS BLOCKED
 void gateClose(void){
 
-SetServo(servo1, 0.50);
+SetServo(servo1, 0.30);
 }
 
 
@@ -108,21 +109,27 @@ void motorTest(void){       //only uses one IR sensor for wall sensing & turning
 
     while(1) {
 
+    if(ADCRead(adc[3]) > 0.60){
 
-    if(ADCRead(adc[0]) < 0.30){         //forward
+        speedOne = -0.95;
+        speedTwo = -0.95;
+
+    }
+    else if(ADCRead(adc[0]) < 0.35){         //forward
         speedOne = -0.30;
         speedTwo = 0.30;
 
     }
-    else if(ADCRead(adc[0]) > 0.30){    //turn right
+    else if(ADCRead(adc[0]) > 0.35){    //turn right
         speedOne = -0.95;
         speedTwo = 0.10;
 
     }
 
+
         SetMotor(motor1,speedOne);
         SetMotor(motor2,speedTwo);
-        SetMotor(motor3, 0.25);
+        SetMotor(motor3, 0.50);
     }
 
     
@@ -302,7 +309,7 @@ void LineSensorTestGate(void){
     LineSensorReadArray(gls, lne);
     //Determine state of each line sensor node
     //1 -> carpet, 0 -> black tape
-    if(lne[3] < 0.30){
+    if(lne[3] < 0.40){
         ls1 = 1;
 
     }
@@ -310,7 +317,7 @@ void LineSensorTestGate(void){
         ls1 = 0;
     }
    
-    if(lne[4] < 0.30){
+    if(lne[4] < 0.40){
         ls2 = 1;
     }
     else{
